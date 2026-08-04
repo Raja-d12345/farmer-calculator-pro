@@ -1,0 +1,1200 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#2E7D32">
+<title>Farmer Calculator Pro - Kheti Hisab Kitab</title>
+<style>
+  :root {
+    --brand: #2E7D32; --brand-dark: #1B5E20; --brand-light: #4CAF50; --brand-pale: rgba(46,125,50,0.08);
+    --accent: #FF6F00; --bg: #f0f2f5; --card: #ffffff; --text: #1a1a1a; --text2: #555555; --text3: #888888;
+    --border: #e0e0e0; --danger: #c62828; --success: #2e7d32; --warning: #f9a825;
+    --shadow: 0 2px 12px rgba(0,0,0,0.08); --radius: 14px; --radius-sm: 10px;
+  }
+  [data-theme="dark"] {
+    --bg: #121212; --card: #1e1e1e; --text: #ffffff; --text2: #b0b0b0; --text3: #707070;
+    --border: #333333; --brand-pale: rgba(76,175,80,0.15); --shadow: 0 2px 12px rgba(0,0,0,0.3);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); min-height:100vh; overflow-x:hidden; }
+  .app { max-width: 480px; margin:0 auto; min-height:100vh; position:relative; }
+
+  /* Header */
+  .header {
+    background: linear-gradient(135deg, var(--brand) 0%, var(--brand-dark) 100%);
+    color: white; padding: 12px 14px; display:flex; align-items:center; gap:10px;
+    position:sticky; top:0; z-index:100; box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  }
+  .header h1 { font-size: 16px; font-weight:600; flex:1; letter-spacing:0.3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .header-btn {
+    background: rgba(255,255,255,0.15); border:none; color:white; width:34px; height:34px;
+    border-radius:8px; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all 0.2s;
+  }
+  .header-btn:hover { background:rgba(255,255,255,0.25); }
+  .header-btn svg { width:18px; height:18px; }
+
+  /* Screen system */
+  .screen { display:none; padding:14px; padding-bottom:100px; animation: fadeIn 0.25s ease; }
+  .screen.active { display:block; }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+
+  /* Menu */
+  .menu-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .menu-card {
+    background:var(--card); border:1.5px solid var(--border); border-radius:var(--radius);
+    padding:16px 12px; text-align:center; cursor:pointer; transition:all 0.2s; box-shadow:var(--shadow);
+  }
+  .menu-card:hover, .menu-card:active { border-color:var(--brand); transform:translateY(-2px); box-shadow:0 4px 20px rgba(46,125,50,0.15); }
+  .menu-icon { width:44px; height:44px; border-radius:12px; display:flex; align-items:center; justify-content:center; margin:0 auto 8px; font-size:22px; }
+  .menu-card h3 { font-size:12px; font-weight:600; color:var(--text); line-height:1.3; }
+  .menu-card p { font-size:10px; color:var(--text3); margin-top:3px; }
+
+  /* Inputs */
+  .input-group { margin-bottom:14px; }
+  .input-group label { display:block; font-size:12px; font-weight:600; color:var(--text2); margin-bottom:5px; }
+  .input-group input, .input-group select {
+    width:100%; padding:12px 14px; border:1.5px solid var(--border); border-radius:var(--radius-sm);
+    font-size:15px; background:var(--card); color:var(--text); font-family:inherit; transition:border-color 0.2s;
+  }
+  .input-group input:focus, .input-group select:focus { outline:none; border-color:var(--brand); box-shadow:0 0 0 3px var(--brand-pale); }
+  .input-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+
+  /* Buttons */
+  .btn {
+    width:100%; padding:14px; background:linear-gradient(135deg, var(--brand) 0%, var(--brand-dark) 100%);
+    color:white; border:none; border-radius:var(--radius-sm); font-size:15px; font-weight:600;
+    cursor:pointer; transition:all 0.2s; font-family:inherit; box-shadow:0 2px 8px rgba(46,125,50,0.3);
+  }
+  .btn:active { transform:scale(0.98); }
+  .btn-secondary { background:var(--card); color:var(--brand); border:1.5px solid var(--brand); box-shadow:none; margin-top:10px; }
+  .btn-danger { background:linear-gradient(135deg, #c62828 0%, #b71c1c 100%); box-shadow:0 2px 8px rgba(198,40,40,0.3); }
+  .btn-sm { padding:8px 14px; font-size:13px; width:auto; display:inline-flex; align-items:center; gap:6px; }
+  .btn-accent { background:linear-gradient(135deg, var(--accent) 0%, #e65100 100%); }
+
+  /* Results */
+  .result-box { background:var(--brand-pale); border:1.5px solid var(--brand); border-radius:var(--radius); padding:16px; margin-top:16px; display:none; }
+  .result-box.show { display:block; animation:fadeIn 0.3s ease; }
+  .result-row { display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--border); font-size:14px; }
+  .result-row:last-child { border-bottom:none; }
+  .result-row .val { font-weight:700; color:var(--brand); font-size:15px; }
+  .result-row .val.big { font-size:20px; }
+
+  /* Tabs */
+  .tabs { display:flex; background:var(--card); border-radius:var(--radius-sm); padding:3px; margin-bottom:16px; border:1.5px solid var(--border); }
+  .tab { flex:1; padding:9px; border:none; background:none; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer; color:var(--text2); font-family:inherit; transition:all 0.2s; }
+  .tab.active { background:linear-gradient(135deg, var(--brand) 0%, var(--brand-dark) 100%); color:white; }
+
+  /* Radio */
+  .radio-group { display:flex; gap:16px; margin-bottom:14px; flex-wrap:wrap; }
+  .radio-group label { display:flex; align-items:center; gap:6px; font-size:14px; cursor:pointer; font-weight:500; }
+  .radio-group input[type="radio"] { accent-color:var(--brand); width:16px; height:16px; cursor:pointer; }
+
+  /* Info card */
+  .info-card {
+    background:linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%); border:1.5px solid #ffe082;
+    border-radius:var(--radius-sm); padding:12px; margin-bottom:14px; font-size:12px; color:#5d4037;
+  }
+  [data-theme="dark"] .info-card { background:linear-gradient(135deg, #3e2723 0%, #4e342e 100%); border-color:#5d4037; color:#ffcc80; }
+
+  /* Section title */
+  .section-title { font-size:13px; font-weight:700; color:var(--text2); margin-bottom:10px; text-transform:uppercase; letter-spacing:0.5px; margin-top:20px; }
+
+  /* History */
+  .history-item { background:var(--card); border:1.5px solid var(--border); border-radius:var(--radius-sm); padding:12px; margin-bottom:8px; box-shadow:var(--shadow); }
+  .history-item .h-title { font-weight:600; color:var(--brand); font-size:13px; }
+  .history-item .h-detail { font-size:12px; color:var(--text2); margin-top:3px; line-height:1.5; }
+  .history-item .h-date { font-size:11px; color:var(--text3); margin-top:4px; }
+  .empty-state { text-align:center; padding:40px 16px; color:var(--text3); font-size:14px; }
+  .empty-state .icon { font-size:42px; margin-bottom:10px; }
+
+  /* Bottom nav */
+  .bottom-nav {
+    position:fixed; bottom:0; left:0; right:0; background:var(--card); border-top:1px solid var(--border);
+    display:flex; justify-content:space-around; padding:6px 0; z-index:99; box-shadow:0 -2px 10px rgba(0,0,0,0.05);
+  }
+  .bottom-nav button { background:none; border:none; color:var(--text3); font-size:10px; font-family:inherit; display:flex; flex-direction:column; align-items:center; gap:2px; cursor:pointer; padding:4px 10px; border-radius:8px; transition:all 0.2s; }
+  .bottom-nav button.active { color:var(--brand); background:var(--brand-pale); }
+  .bottom-nav button svg { width:20px; height:20px; }
+
+  /* Toast */
+  .toast {
+    position:fixed; bottom:76px; left:50%; transform:translateX(-50%) translateY(100px);
+    background:var(--brand-dark); color:white; padding:10px 20px; border-radius:24px; font-size:13px; font-weight:500;
+    z-index:200; opacity:0; transition:all 0.3s; box-shadow:0 4px 16px rgba(0,0,0,0.2); white-space:nowrap;
+  }
+  .toast.show { transform:translateX(-50%) translateY(0); opacity:1; }
+
+  /* Language selector */
+  .lang-select { background:rgba(255,255,255,0.2); color:white; border:1px solid rgba(255,255,255,0.3); border-radius:8px; padding:4px 8px; font-size:12px; font-family:inherit; cursor:pointer; }
+  .lang-select option { background:var(--brand-dark); color:white; }
+
+  /* Reminder styles */
+  .reminder-card {
+    background:var(--card); border:1.5px solid var(--border); border-radius:var(--radius-sm); padding:14px; margin-bottom:10px; box-shadow:var(--shadow); position:relative;
+  }
+  .reminder-card .r-title { font-weight:600; font-size:14px; color:var(--text); }
+  .reminder-card .r-time { font-size:12px; color:var(--text2); margin-top:4px; }
+  .reminder-card .r-type { display:inline-block; font-size:10px; font-weight:600; padding:2px 8px; border-radius:10px; margin-top:6px; }
+  .r-type-seed { background:rgba(46,125,50,0.12); color:var(--brand); }
+  .r-type-pest { background:rgba(198,40,40,0.12); color:var(--danger); }
+  .r-type-water { background:rgba(33,150,243,0.12); color:#1565c0; }
+  .r-type-fert { background:rgba(255,111,0,0.12); color:var(--accent); }
+  .r-type-other { background:rgba(136,136,136,0.12); color:var(--text2); }
+  .reminder-card .r-delete { position:absolute; top:10px; right:10px; background:none; border:none; color:var(--danger); font-size:16px; cursor:pointer; }
+
+  /* Chart canvas */
+  .chart-container { background:var(--card); border:1.5px solid var(--border); border-radius:var(--radius); padding:16px; margin-top:16px; display:none; }
+  .chart-container.show { display:block; }
+  .chart-title { font-size:14px; font-weight:600; color:var(--text2); margin-bottom:12px; text-align:center; }
+  canvas { width:100%; height:220px; }
+
+  /* Checkbox */
+  .checkbox-group { display:flex; align-items:center; gap:8px; margin-bottom:12px; }
+  .checkbox-group input { width:18px; height:18px; accent-color:var(--brand); cursor:pointer; }
+  .checkbox-group label { font-size:14px; cursor:pointer; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width:4px; }
+  ::-webkit-scrollbar-thumb { background:var(--brand); border-radius:4px; }
+
+  /* Print */
+  @media print { .header, .bottom-nav, .btn, .btn-secondary { display:none !important; } .screen { display:block !important; padding:0; } body { background:white; } }
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- HEADER -->
+<div class="header">
+  <button class="header-btn" id="backBtn" style="display:none" onclick="goHome()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+  </button>
+  <h1 id="headerTitle">Farmer Calculator Pro</h1>
+  <select class="lang-select" id="langSelect" onchange="changeLang(this.value)">
+    <option value="hi">🇮🇳 हिंदी</option>
+    <option value="en">🇬🇧 English</option>
+    <option value="gu">🇮🇳 ગુજરાતી</option>
+    <option value="mr">🇮🇳 मराठी</option>
+    <option value="ne">🇳🇵 नेपाली</option>
+    <option value="pa">🇮🇳 ਪੰਜਾਬੀ</option>
+  </select>
+  <button class="header-btn" onclick="toggleTheme()" title="Dark Mode">
+    <svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+  </button>
+</div>
+
+<!-- ========== HOME SCREEN ========== -->
+<div class="screen active" id="screen-home">
+  <div class="section-title" data-t="farming_calc">🌾 Farming Calculators</div>
+  <div class="menu-grid">
+    <div class="menu-card" onclick="openScreen('crop')">
+      <div class="menu-icon" style="background:#FFF8E1;">🌾</div>
+      <h3 data-t="crop_calc">Crop Calculator</h3>
+      <p data-t="crop_desc">Fasal ka daam</p>
+    </div>
+    <div class="menu-card" onclick="openScreen('tractor-time')">
+      <div class="menu-icon" style="background:#FFEBEE;">🚜</div>
+      <h3 data-t="tractor_time">Tractor Time & Cost</h3>
+      <p data-t="tractor_time_desc">Kiraya hisaab</p>
+    </div>
+    <div class="menu-card" onclick="openScreen('tractor-area')">
+      <div class="menu-icon" style="background:#E8F5E9;">📐</div>
+      <h3 data-t="tractor_area">Tractor Area</h3>
+      <p data-t="tractor_area_desc">Khet ka area</p>
+    </div>
+    <div class="menu-card" onclick="openScreen('fertilizer')">
+      <div class="menu-icon" style="background:#F3E5F5;">🧪</div>
+      <h3 data-t="fertilizer">Fertilizer (NPK)</h3>
+      <p data-t="fertilizer_desc">Khad ka hisaab</p>
+    </div>
+    <div class="menu-card" onclick="openScreen('seed')">
+      <div class="menu-icon" style="background:#E3F2FD;">🌱</div>
+      <h3 data-t="seed_rate">Seed Rate</h3>
+      <p data-t="seed_desc">Beej ki matra</p>
+    </div>
+    <div class="menu-card" onclick="openScreen('pesticide')">
+      <div class="menu-icon" style="background:#E0F7FA;">💨</div>
+      <h3 data-t="pesticide">Pesticide Spray</h3>
+      <p data-t="pesticide_desc">Dawa ka hisaab</p>
+    </div>
+  </div>
+
+  <div class="section-title" data-t="finance_calc">💰 Finance Calculators</div>
+  <div class="menu-grid">
+    <div class="menu-card" onclick="openScreen('interest')">
+      <div class="menu-icon" style="background:#E8F5E9;">💰</div>
+      <h3 data-t="interest">Interest Calculator</h3>
+      <p data-t="interest_desc">Byaj ka hisaab</p>
+    </div>
+    <div class="menu-card" onclick="openScreen('emi')">
+      <div class="menu-icon" style="background:#FFF3E0;">🏦</div>
+      <h3 data-t="emi">EMI Calculator</h3>
+      <p data-t="emi_desc">Loan ki kisht</p>
+    </div>
+    <div class="menu-card" onclick="openScreen('sip')">
+      <div class="menu-icon" style="background:#E0F2F1;">📈</div>
+      <h3 data-t="sip">SIP Calculator</h3>
+      <p data-t="sip_desc">Bachat aur return</p>
+    </div>
+    <div class="menu-card" onclick="openScreen('profit')">
+      <div class="menu-icon" style="background:#FBE9E7;">📊</div>
+      <h3 data-t="profit_loss">Profit / Loss</h3>
+      <p data-t="profit_desc">Fayda ya nuksaan</p>
+    </div>
+  </div>
+
+  <div class="section-title" data-t="tools">🛠️ Tools</div>
+  <div class="menu-grid">
+    <div class="menu-card" onclick="openScreen('converter')">
+      <div class="menu-icon" style="background:#ECEFF1;">⚖️</div>
+      <h3 data-t="land_conv">Land Converter</h3>
+      <p data-t="land_conv_desc">Bigha, Acre, Ha</p>
+    </div>
+    <div class="menu-card" onclick="openScreen('reminders')">
+      <div class="menu-icon" style="background:#FFF3E0;">🔔</div>
+      <h3 data-t="reminders">Reminders</h3>
+      <p data-t="reminders_desc">Beej, Dawa, Paani</p>
+    </div>
+    <div class="menu-card" onclick="openScreen('mybook')">
+      <div class="menu-icon" style="background:#FFF8E1;">📖</div>
+      <h3 data-t="my_book">My Book</h3>
+      <p data-t="my_book_desc">Saved history</p>
+    </div>
+  </div>
+</div>
+
+<!-- ========== CROP ========== -->
+<div class="screen" id="screen-crop">
+  <div class="info-card" data-t="crop_info">Total bags, bag weight, wastage aur rate daaliye. App total amount bata dega.</div>
+  <div class="input-group"><label data-t="total_bags">Total Bags (boriyaan)</label><input type="number" id="c-bags" placeholder="e.g. 50"></div>
+  <div class="input-group"><label data-t="bag_weight">Bag Weight (kg)</label><input type="number" id="c-weight" placeholder="e.g. 50"></div>
+  <div class="input-group"><label data-t="wastage">Wastage per Bag (kg)</label><input type="number" id="c-waste" placeholder="e.g. 2"></div>
+  <div class="input-group"><label data-t="rate_quintal">Rate per Quintal (₹)</label><input type="number" id="c-rate" placeholder="e.g. 2000"></div>
+  <button class="btn" onclick="calcCrop()" data-t="calculate">Calculate</button>
+  <div class="result-box" id="c-res">
+    <div class="result-row"><span data-t="total_weight">Total Weight</span><span class="val" id="c-r1"></span></div>
+    <div class="result-row"><span data-t="net_weight">Net Weight (after wastage)</span><span class="val" id="c-r2"></span></div>
+    <div class="result-row"><span data-t="total_quintals">Total Quintals</span><span class="val" id="c-r3"></span></div>
+    <div class="result-row"><span data-t="total_amount">Total Amount</span><span class="val big" id="c-r4"></span></div>
+  </div>
+  <button class="btn btn-secondary" onclick="saveCalc('Crop', 'c-res')" data-t="save_book">💾 Save to My Book</button>
+</div>
+
+<!-- ========== TRACTOR TIME ========== -->
+<div class="screen" id="screen-tractor-time">
+  <div class="info-card" data-t="tt_info">Tractor ka hourly rate aur kitne ghante/minute chala, daaliye.</div>
+  <div class="input-group"><label data-t="rate_hour">Rate per Hour (₹)</label><input type="number" id="tt-rate" placeholder="e.g. 500"></div>
+  <div class="input-row">
+    <div class="input-group"><label data-t="hours">Hours</label><input type="number" id="tt-h" placeholder="e.g. 3"></div>
+    <div class="input-group"><label data-t="minutes">Minutes</label><input type="number" id="tt-m" placeholder="e.g. 30"></div>
+  </div>
+  <button class="btn" onclick="calcTractorTime()" data-t="calculate">Calculate</button>
+  <div class="result-box" id="tt-res">
+    <div class="result-row"><span data-t="total_time">Total Time</span><span class="val" id="tt-r1"></span></div>
+    <div class="result-row"><span data-t="total_cost">Total Cost</span><span class="val big" id="tt-r2"></span></div>
+  </div>
+  <button class="btn btn-secondary" onclick="saveCalc('Tractor Time', 'tt-res')" data-t="save_book">💾 Save to My Book</button>
+</div>
+
+<!-- ========== TRACTOR AREA ========== -->
+<div class="screen" id="screen-tractor-area">
+  <div class="info-card" data-t="ta_info">Tractor se khet ka area nikaliye. Length, width per round, aur total rounds daaliye.</div>
+  <div class="input-group"><label data-t="field_length">Field Length (meters)</label><input type="number" id="ta-len" placeholder="e.g. 100"></div>
+  <div class="input-group"><label data-t="width_round">Width per Round (meters)</label><input type="number" id="ta-wid" placeholder="e.g. 2.5"></div>
+  <div class="input-group"><label data-t="total_rounds">Total Rounds</label><input type="number" id="ta-round" placeholder="e.g. 20"></div>
+  <button class="btn" onclick="calcTractorArea()" data-t="calculate">Calculate</button>
+  <div class="result-box" id="ta-res">
+    <div class="result-row"><span data-t="total_area">Total Area</span><span class="val" id="ta-r1"></span></div>
+    <div class="result-row"><span data-t="in_acres">In Acres</span><span class="val" id="ta-r2"></span></div>
+    <div class="result-row"><span data-t="in_bigha">In Bigha</span><span class="val" id="ta-r3"></span></div>
+    <div class="result-row"><span data-t="in_hectares">In Hectares</span><span class="val" id="ta-r4"></span></div>
+  </div>
+  <button class="btn btn-secondary" onclick="saveCalc('Tractor Area', 'ta-res')" data-t="save_book">💾 Save to My Book</button>
+</div>
+
+<!-- ========== FERTILIZER ========== -->
+<div class="screen" id="screen-fertilizer">
+  <div class="info-card" data-t="fert_info">NPK ratio daaliye (jaise 20-20-20). App batayega kitna Urea, DAP, MOP chahiye.</div>
+  <div class="input-group"><label data-t="nitrogen">Required Nitrogen (N) kg</label><input type="number" id="f-n" placeholder="e.g. 40"></div>
+  <div class="input-group"><label data-t="phosphorus">Required Phosphorus (P) kg</label><input type="number" id="f-p" placeholder="e.g. 20"></div>
+  <div class="input-group"><label data-t="potassium">Required Potassium (K) kg</label><input type="number" id="f-k" placeholder="e.g. 20"></div>
+  <div class="input-group"><label data-t="area_hectare">Area (in Hectares)</label><input type="number" id="f-area" placeholder="e.g. 1"></div>
+  <button class="btn" onclick="calcFertilizer()" data-t="calculate">Calculate</button>
+  <div class="result-box" id="f-res">
+    <div class="result-row"><span data-t="urea">Urea (46% N)</span><span class="val" id="f-r1"></span></div>
+    <div class="result-row"><span data-t="dap">DAP (18% P, 46% N)</span><span class="val" id="f-r2"></span></div>
+    <div class="result-row"><span data-t="mop">MOP (60% K)</span><span class="val" id="f-r3"></span></div>
+    <div class="result-row"><span data-t="total_fert">Total Fertilizer</span><span class="val big" id="f-r4"></span></div>
+  </div>
+  <button class="btn btn-secondary" onclick="saveCalc('Fertilizer NPK', 'f-res')" data-t="save_book">💾 Save to My Book</button>
+</div>
+
+<!-- ========== SEED ========== -->
+<div class="screen" id="screen-seed">
+  <div class="info-card" data-t="seed_info">Beej ki recommended rate (kg/hectare) aur area daaliye.</div>
+  <div class="input-group"><label data-t="seed_rate_label">Seed Rate (kg per hectare)</label><input type="number" id="s-rate" placeholder="e.g. 100"></div>
+  <div class="input-group"><label data-t="field_area">Field Area (hectares)</label><input type="number" id="s-area" placeholder="e.g. 2"></div>
+  <div class="input-group"><label data-t="germ_rate">Germination Rate (%)</label><input type="number" id="s-germ" placeholder="e.g. 85" value="85"></div>
+  <button class="btn" onclick="calcSeed()" data-t="calculate">Calculate</button>
+  <div class="result-box" id="s-res">
+    <div class="result-row"><span data-t="total_seed">Total Seed Needed</span><span class="val" id="s-r1"></span></div>
+    <div class="result-row"><span data-t="with_buffer">With Germination Buffer</span><span class="val big" id="s-r2"></span></div>
+  </div>
+  <button class="btn btn-secondary" onclick="saveCalc('Seed Rate', 's-res')" data-t="save_book">💾 Save to My Book</button>
+</div>
+
+<!-- ========== PESTICIDE ========== -->
+<div class="screen" id="screen-pesticide">
+  <div class="info-card" data-t="pest_info">Dawa ka recommended dose aur spray tank capacity daaliye.</div>
+  <div class="input-group"><label data-t="dose_liter">Recommended Dose (ml or gm per liter)</label><input type="number" id="p-dose" placeholder="e.g. 2"></div>
+  <div class="input-group"><label data-t="tank_cap">Spray Tank Capacity (liters)</label><input type="number" id="p-tank" placeholder="e.g. 16"></div>
+  <div class="input-group"><label data-t="total_tanks">Total Tanks Needed</label><input type="number" id="p-tanks" placeholder="e.g. 5"></div>
+  <button class="btn" onclick="calcPesticide()" data-t="calculate">Calculate</button>
+  <div class="result-box" id="p-res">
+    <div class="result-row"><span data-t="per_tank">Per Tank</span><span class="val" id="p-r1"></span></div>
+    <div class="result-row"><span data-t="total_pest">Total Pesticide Needed</span><span class="val big" id="p-r2"></span></div>
+  </div>
+  <button class="btn btn-secondary" onclick="saveCalc('Pesticide', 'p-res')" data-t="save_book">💾 Save to My Book</button>
+</div>
+
+<!-- ========== INTEREST ========== -->
+<div class="screen" id="screen-interest">
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab(this,'int-simple')" data-t="simple_int">Simple Interest</button>
+    <button class="tab" onclick="switchTab(this,'int-emi')" data-t="emi_tab">EMI</button>
+  </div>
+  <div id="int-simple">
+    <div class="input-group"><label data-t="principal">Principal Amount (₹)</label><input type="number" id="i-p" placeholder="e.g. 10000"></div>
+    <div class="input-group"><label data-t="int_rate">Interest Rate (% per year)</label><input type="number" id="i-rate" placeholder="e.g. 10"></div>
+    <div class="radio-group">
+      <label><input type="radio" name="i-mode" value="dates" checked onchange="toggleIntMode()"> <span data-t="by_dates">By Dates</span></label>
+      <label><input type="radio" name="i-mode" value="years" onchange="toggleIntMode()"> <span data-t="by_years">By Years</span></label>
+    </div>
+    <div id="i-dates-box">
+      <div class="input-group"><label data-t="from_date">From Date</label><input type="date" id="i-from"></div>
+      <div class="input-group"><label data-t="to_date">To Date</label><input type="date" id="i-to"></div>
+    </div>
+    <div id="i-years-box" style="display:none">
+      <div class="input-group"><label data-t="duration_years">Duration (years)</label><input type="number" id="i-years" placeholder="e.g. 2"></div>
+    </div>
+    <button class="btn" onclick="calcInterest()" data-t="calculate">Calculate</button>
+    <div class="result-box" id="i-res">
+      <div class="result-row"><span data-t="duration">Duration</span><span class="val" id="i-r1"></span></div>
+      <div class="result-row"><span data-t="simple_interest">Simple Interest</span><span class="val" id="i-r2"></span></div>
+      <div class="result-row"><span data-t="total_amount">Total Amount</span><span class="val big" id="i-r3"></span></div>
+    </div>
+  </div>
+  <div id="int-emi" style="display:none">
+    <div class="input-group"><label data-t="loan_amount">Loan Amount (₹)</label><input type="number" id="i2-p" placeholder="e.g. 100000"></div>
+    <div class="input-group"><label data-t="loan_rate">Interest Rate (% per year)</label><input type="number" id="i2-rate" placeholder="e.g. 12"></div>
+    <div class="input-group"><label data-t="loan_months">Duration (months)</label><input type="number" id="i2-months" placeholder="e.g. 24"></div>
+    <button class="btn" onclick="calcIntEMI()" data-t="calculate">Calculate</button>
+    <div class="result-box" id="i2-res">
+      <div class="result-row"><span data-t="monthly_emi">Monthly EMI</span><span class="val big" id="i2-r1"></span></div>
+      <div class="result-row"><span data-t="total_interest">Total Interest</span><span class="val" id="i2-r2"></span></div>
+      <div class="result-row"><span data-t="total_payment">Total Payment</span><span class="val" id="i2-r3"></span></div>
+    </div>
+  </div>
+  <button class="btn btn-secondary" onclick="saveCalc('Interest', 'i-res')" data-t="save_book">💾 Save to My Book</button>
+</div>
+
+<!-- ========== EMI ========== -->
+<div class="screen" id="screen-emi">
+  <div class="info-card" data-t="emi_info">Loan amount, interest rate aur tenure daaliye. Monthly EMI aur total interest pata chalega.</div>
+  <div class="input-group"><label data-t="loan_amount">Loan Amount (₹)</label><input type="number" id="e-p" placeholder="e.g. 500000"></div>
+  <div class="input-group"><label data-t="loan_rate">Interest Rate (% per year)</label><input type="number" id="e-rate" placeholder="e.g. 10.5"></div>
+  <div class="input-group"><label data-t="loan_tenure">Loan Tenure (years)</label><input type="number" id="e-years" placeholder="e.g. 5"></div>
+  <button class="btn" onclick="calcEMI()" data-t="calculate">Calculate</button>
+  <div class="result-box" id="e-res">
+    <div class="result-row"><span data-t="monthly_emi">Monthly EMI</span><span class="val big" id="e-r1"></span></div>
+    <div class="result-row"><span data-t="total_interest">Total Interest</span><span class="val" id="e-r2"></span></div>
+    <div class="result-row"><span data-t="total_amount">Total Amount</span><span class="val" id="e-r3"></span></div>
+  </div>
+  <div class="chart-container" id="e-chart-box">
+    <div class="chart-title" data-t="emi_chart">EMI Breakdown (Yearly)</div>
+    <canvas id="e-canvas"></canvas>
+  </div>
+  <button class="btn btn-secondary" onclick="saveCalc('EMI', 'e-res')" data-t="save_book">💾 Save to My Book</button>
+</div>
+
+<!-- ========== SIP ========== -->
+<div class="screen" id="screen-sip">
+  <div class="info-card" data-t="sip_info">Monthly investment, expected return aur time period daaliye. Future value pata chalega.</div>
+  <div class="input-group"><label data-t="monthly_inv">Monthly Investment (₹)</label><input type="number" id="si-p" placeholder="e.g. 5000"></div>
+  <div class="input-group"><label data-t="exp_return">Expected Return (% per year)</label><input type="number" id="si-rate" placeholder="e.g. 12"></div>
+  <div class="input-group"><label data-t="time_period">Time Period (years)</label><input type="number" id="si-years" placeholder="e.g. 10"></div>
+  <button class="btn" onclick="calcSIP()" data-t="calculate">Calculate</button>
+  <div class="result-box" id="si-res">
+    <div class="result-row"><span data-t="invested_amt">Invested Amount</span><span class="val" id="si-r1"></span></div>
+    <div class="result-row"><span data-t="est_returns">Estimated Returns</span><span class="val" id="si-r2"></span></div>
+    <div class="result-row"><span data-t="total_value">Total Value</span><span class="val big" id="si-r3"></span></div>
+  </div>
+  <div class="chart-container" id="si-chart-box">
+    <div class="chart-title" data-t="sip_chart">SIP Growth (Yearly)</div>
+    <canvas id="si-canvas"></canvas>
+  </div>
+  <button class="btn btn-secondary" onclick="saveCalc('SIP', 'si-res')" data-t="save_book">💾 Save to My Book</button>
+</div>
+
+<!-- ========== PROFIT/LOSS ========== -->
+<div class="screen" id="screen-profit">
+  <div class="info-card" data-t="profit_info">Total kharcha aur total aay daaliye. Profit ya loss pata chalega.</div>
+  <div class="input-group"><label data-t="total_cost">Total Investment / Cost (₹)</label><input type="number" id="pl-cost" placeholder="e.g. 50000"></div>
+  <div class="input-group"><label data-t="total_income">Total Income / Selling Price (₹)</label><input type="number" id="pl-income" placeholder="e.g. 75000"></div>
+  <button class="btn" onclick="calcProfit()" data-t="calculate">Calculate</button>
+  <div class="result-box" id="pl-res">
+    <div class="result-row"><span data-t="profit_loss">Profit / Loss</span><span class="val big" id="pl-r1"></span></div>
+    <div class="result-row"><span data-t="profit_margin">Profit Margin (%)</span><span class="val" id="pl-r2"></span></div>
+    <div class="result-row"><span data-t="roi">ROI (%)</span><span class="val" id="pl-r3"></span></div>
+  </div>
+  <button class="btn btn-secondary" onclick="saveCalc('Profit/Loss', 'pl-res')" data-t="save_book">💾 Save to My Book</button>
+</div>
+
+<!-- ========== CONVERTER ========== -->
+<div class="screen" id="screen-converter">
+  <div class="info-card" data-t="conv_info">Kisi bhi unit mein area daaliye. Sab units mein convert ho jayega.</div>
+  <div class="input-group">
+    <label data-t="from_unit">From Unit</label>
+    <select id="lc-from">
+      <option value="sqm">Square Meter</option>
+      <option value="acre">Acre</option>
+      <option value="hectare">Hectare</option>
+      <option value="bigha">Bigha</option>
+      <option value="kanal">Kanal</option>
+      <option value="guntha">Guntha</option>
+      <option value="sqft">Square Feet</option>
+    </select>
+  </div>
+  <div class="input-group"><label data-t="enter_value">Enter Value</label><input type="number" id="lc-val" placeholder="e.g. 2"></div>
+  <button class="btn" onclick="calcConverter()" data-t="convert">Convert</button>
+  <div class="result-box" id="lc-res">
+    <div class="result-row"><span data-t="sqm">Square Meter</span><span class="val" id="lc-r1"></span></div>
+    <div class="result-row"><span data-t="acre">Acre</span><span class="val" id="lc-r2"></span></div>
+    <div class="result-row"><span data-t="hectare">Hectare</span><span class="val" id="lc-r3"></span></div>
+    <div class="result-row"><span data-t="bigha">Bigha</span><span class="val" id="lc-r4"></span></div>
+    <div class="result-row"><span data-t="kanal">Kanal</span><span class="val" id="lc-r5"></span></div>
+    <div class="result-row"><span data-t="guntha">Guntha</span><span class="val" id="lc-r6"></span></div>
+    <div class="result-row"><span data-t="sqft">Square Feet</span><span class="val" id="lc-r7"></span></div>
+  </div>
+</div>
+
+<!-- ========== REMINDERS ========== -->
+<div class="screen" id="screen-reminders">
+  <div class="info-card" data-t="remind_info">Beej daalne, dawa spray, paani dene jaise kaam ke liye reminder set karein.</div>
+  <div style="background:var(--card); border:1.5px solid var(--border); border-radius:var(--radius); padding:16px; margin-bottom:16px; box-shadow:var(--shadow);">
+    <div class="input-group"><label data-t="remind_title">Reminder Title</label><input type="text" id="r-title" placeholder="e.g. Wheat seeding"></div>
+    <div class="input-group">
+      <label data-t="remind_type">Type</label>
+      <select id="r-type">
+        <option value="seed" data-t="type_seed">🌱 Beej Daalna (Seeding)</option>
+        <option value="pest" data-t="type_pest">💨 Dawa Spray (Pesticide)</option>
+        <option value="water" data-t="type_water">💧 Paani Dena (Irrigation)</option>
+        <option value="fert" data-t="type_fert">🧪 Khad Daalna (Fertilizer)</option>
+        <option value="other" data-t="type_other">📌 Other</option>
+      </select>
+    </div>
+    <div class="input-group"><label data-t="remind_date">Date & Time</label><input type="datetime-local" id="r-datetime"></div>
+    <div class="checkbox-group">
+      <input type="checkbox" id="r-repeat">
+      <label for="r-repeat" data-t="repeat_daily">Repeat Daily</label>
+    </div>
+    <button class="btn btn-accent" onclick="addReminder()" data-t="add_reminder">➕ Add Reminder</button>
+  </div>
+  <div class="section-title" data-t="upcoming">📅 Upcoming Reminders</div>
+  <div id="reminder-list"></div>
+</div>
+
+<!-- ========== MY BOOK ========== -->
+<div class="screen" id="screen-mybook">
+  <div style="display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap;">
+    <button class="btn btn-sm" onclick="exportData()">📤 <span data-t="export">Export</span></button>
+    <button class="btn btn-sm btn-secondary" onclick="document.getElementById('importFile').click()">📥 <span data-t="import">Import</span></button>
+    <input type="file" id="importFile" style="display:none" accept=".json" onchange="importData(this)">
+    <button class="btn btn-sm btn-danger" onclick="clearAll()">🗑️ <span data-t="clear_all">Clear All</span></button>
+  </div>
+  <div id="book-list"></div>
+</div>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <button class="active" onclick="goHome()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    <span data-t="nav_home">Home</span>
+  </button>
+  <button onclick="openScreen('reminders')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+    <span data-t="nav_remind">Remind</span>
+  </button>
+  <button onclick="openScreen('mybook')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+    <span data-t="nav_book">My Book</span>
+  </button>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ==================== TRANSLATIONS ====================
+const T = {
+  en: {
+    farming_calc: "🌾 Farming Calculators", finance_calc: "💰 Finance Calculators", tools: "🛠️ Tools",
+    crop_calc: "Crop Calculator", crop_desc: "Crop price", tractor_time: "Tractor Time & Cost", tractor_time_desc: "Rent calculation",
+    tractor_area: "Tractor Area", tractor_area_desc: "Field area", fertilizer: "Fertilizer (NPK)", fertilizer_desc: "Fertilizer calc",
+    seed_rate: "Seed Rate", seed_desc: "Seed quantity", pesticide: "Pesticide Spray", pesticide_desc: "Pesticide calc",
+    interest: "Interest Calculator", interest_desc: "Interest calc", emi: "EMI Calculator", emi_desc: "Loan EMI",
+    sip: "SIP Calculator", sip_desc: "Savings & returns", profit_loss: "Profit / Loss", profit_desc: "Gain or loss",
+    land_conv: "Land Converter", land_conv_desc: "Bigha, Acre, Ha", reminders: "Reminders", reminders_desc: "Seed, Med, Water",
+    my_book: "My Book", my_book_desc: "Saved history",
+    crop_info: "Enter total bags, bag weight, wastage and rate. App will show total amount.",
+    total_bags: "Total Bags", bag_weight: "Bag Weight (kg)", wastage: "Wastage per Bag (kg)", rate_quintal: "Rate per Quintal (₹)",
+    calculate: "Calculate", total_weight: "Total Weight", net_weight: "Net Weight (after wastage)", total_quintals: "Total Quintals",
+    total_amount: "Total Amount", save_book: "💾 Save to My Book",
+    tt_info: "Enter tractor hourly rate and how many hours/minutes it ran.", rate_hour: "Rate per Hour (₹)",
+    hours: "Hours", minutes: "Minutes", total_time: "Total Time", total_cost: "Total Cost",
+    ta_info: "Calculate field area using tractor. Enter length, width per round, and total rounds.",
+    field_length: "Field Length (meters)", width_round: "Width per Round (meters)", total_rounds: "Total Rounds",
+    total_area: "Total Area", in_acres: "In Acres", in_bigha: "In Bigha", in_hectares: "In Hectares",
+    fert_info: "Enter NPK ratio (e.g. 20-20-20). App will tell Urea, DAP, MOP needed.",
+    nitrogen: "Required Nitrogen (N) kg", phosphorus: "Required Phosphorus (P) kg", potassium: "Required Potassium (K) kg",
+    area_hectare: "Area (in Hectares)", urea: "Urea (46% N)", dap: "DAP (18% P, 46% N)", mop: "MOP (60% K)", total_fert: "Total Fertilizer",
+    seed_info: "Enter recommended seed rate (kg/hectare) and area.", seed_rate_label: "Seed Rate (kg per hectare)",
+    field_area: "Field Area (hectares)", germ_rate: "Germination Rate (%)", total_seed: "Total Seed Needed", with_buffer: "With Germination Buffer",
+    pest_info: "Enter recommended dose and spray tank capacity.", dose_liter: "Recommended Dose (ml or gm per liter)",
+    tank_cap: "Spray Tank Capacity (liters)", total_tanks: "Total Tanks Needed", per_tank: "Per Tank", total_pest: "Total Pesticide Needed",
+    simple_int: "Simple Interest", emi_tab: "EMI", principal: "Principal Amount (₹)", int_rate: "Interest Rate (% per year)",
+    by_dates: "By Dates", by_years: "By Years", from_date: "From Date", to_date: "To Date", duration_years: "Duration (years)",
+    duration: "Duration", simple_interest: "Simple Interest", loan_amount: "Loan Amount (₹)", loan_rate: "Interest Rate (% per year)",
+    loan_months: "Duration (months)", monthly_emi: "Monthly EMI", total_interest: "Total Interest", total_payment: "Total Payment",
+    emi_info: "Enter loan amount, interest rate and tenure. Get monthly EMI and total interest.",
+    loan_tenure: "Loan Tenure (years)", sip_info: "Enter monthly investment, expected return and time period. Get future value.",
+    monthly_inv: "Monthly Investment (₹)", exp_return: "Expected Return (% per year)", time_period: "Time Period (years)",
+    invested_amt: "Invested Amount", est_returns: "Estimated Returns", total_value: "Total Value",
+    emi_chart: "EMI Breakdown (Yearly)", sip_chart: "SIP Growth (Yearly)",
+    profit_info: "Enter total cost and total income. See profit or loss.", total_cost: "Total Investment / Cost (₹)",
+    total_income: "Total Income / Selling Price (₹)", profit_margin: "Profit Margin (%)", roi: "ROI (%)",
+    conv_info: "Enter area in any unit. It converts to all other units.", from_unit: "From Unit", enter_value: "Enter Value", convert: "Convert",
+    sqm: "Square Meter", acre: "Acre", hectare: "Hectare", bigha: "Bigha", kanal: "Kanal", guntha: "Guntha", sqft: "Square Feet",
+    remind_info: "Set reminders for seeding, pesticide spray, irrigation etc.", remind_title: "Reminder Title",
+    remind_type: "Type", type_seed: "🌱 Seeding", type_pest: "💨 Pesticide", type_water: "💧 Irrigation", type_fert: "🧪 Fertilizer", type_other: "📌 Other",
+    remind_date: "Date & Time", repeat_daily: "Repeat Daily", add_reminder: "➕ Add Reminder", upcoming: "📅 Upcoming Reminders",
+    export: "Export", import: "Import", clear_all: "Clear All", nav_home: "Home", nav_remind: "Remind", nav_book: "My Book"
+  },
+  hi: {
+    farming_calc: "🌾 खेती कैलकुलेटर", finance_calc: "💰 फाइनेंस कैलकुलेटर", tools: "🛠️ टूल्स",
+    crop_calc: "फसल कैलकुलेटर", crop_desc: "फसल का दाम", tractor_time: "ट्रैक्टर टाइम और किराया", tractor_time_desc: "किराया हिसाब",
+    tractor_area: "ट्रैक्टर एरिया", tractor_area_desc: "खेत का एरिया", fertilizer: "खाद (NPK)", fertilizer_desc: "खाद का हिसाब",
+    seed_rate: "बीज दर", seed_desc: "बीज की मात्रा", pesticide: "दवा स्प्रे", pesticide_desc: "दवा का हिसाब",
+    interest: "ब्याज कैलकुलेटर", interest_desc: "ब्याज हिसाब", emi: "EMI कैलकुलेटर", emi_desc: "लोन की किश्त",
+    sip: "SIP कैलकुलेटर", sip_desc: "बचत और रिटर्न", profit_loss: "फायदा / नुकसान", profit_desc: "लाभ या हानि",
+    land_conv: "जमीन कनवर्टर", land_conv_desc: "बीघा, एकड़, हेक्टेयर", reminders: "रिमाइंडर", reminders_desc: "बीज, दवा, पानी",
+    my_book: "मेरी किताब", my_book_desc: "सेव्ड हिस्ट्री",
+    crop_info: "कुल बोरियां, बोरी वजन, बर्बादी और रेट डालिए। ऐप कुल राशि बता देगा।",
+    total_bags: "कुल बोरियां", bag_weight: "बोरी वजन (किलो)", wastage: "प्रति बोरी बर्बादी (किलो)", rate_quintal: "प्रति क्विंटल रेट (₹)",
+    calculate: "हिसाब लगाएं", total_weight: "कुल वजन", net_weight: "शुद्ध वजन (बर्बादी के बाद)", total_quintals: "कुल क्विंटल",
+    total_amount: "कुल राशि", save_book: "💾 मेरी किताब में सेव करें",
+    tt_info: "ट्रैक्टर का घंटे का किराया और कितने घंटे/मिनट चला, डालिए।", rate_hour: "प्रति घंटा किराया (₹)",
+    hours: "घंटे", minutes: "मिनट", total_time: "कुल समय", total_cost: "कुल खर्च",
+    ta_info: "ट्रैक्टर से खेत का एरिया निकालिए। लंबाई, चौड़ाई और कुल चक्कर डालिए।",
+    field_length: "खेत की लंबाई (मीटर)", width_round: "प्रति चक्कर चौड़ाई (मीटर)", total_rounds: "कुल चक्कर",
+    total_area: "कुल एरिया", in_acres: "एकड़ में", in_bigha: "बीघा में", in_hectares: "हेक्टेयर में",
+    fert_info: "NPK अनुपात डालिए (जैसे 20-20-20)। ऐप यूरिया, DAP, MOP बताएगा।",
+    nitrogen: "नाइट्रोजन (N) किलो", phosphorus: "फॉस्फोरस (P) किलो", potassium: "पोटैशियम (K) किलो",
+    area_hectare: "एरिया (हेक्टेयर में)", urea: "यूरिया (46% N)", dap: "DAP (18% P, 46% N)", mop: "MOP (60% K)", total_fert: "कुल खाद",
+    seed_info: "बीज की सिफारिश की दर (किलो/हेक्टेयर) और एरिया डालिए।", seed_rate_label: "बीज दर (किलो प्रति हेक्टेयर)",
+    field_area: "खेत का एरिया (हेक्टेयर)", germ_rate: "अंकुरण दर (%)", total_seed: "कुल बीज चाहिए", with_buffer: "बफर के साथ",
+    pest_info: "दवा की सिफारिश की मात्रा और स्प्रे टैंक क्षमता डालिए।", dose_liter: "सिफारिश की मात्रा (मिली/ग्राम प्रति लीटर)",
+    tank_cap: "स्प्रे टैंक क्षमता (लीटर)", total_tanks: "कुल टैंक चाहिए", per_tank: "प्रति टैंक", total_pest: "कुल दवा चाहिए",
+    simple_int: "साधारण ब्याज", emi_tab: "EMI", principal: "मूल राशि (₹)", int_rate: "ब्याज दर (% प्रति वर्ष)",
+    by_dates: "तारीख से", by_years: "साल से", from_date: "शुरुआत तारीख", to_date: "अंत तारीख", duration_years: "अवधि (साल)",
+    duration: "अवधि", simple_interest: "साधारण ब्याज", loan_amount: "लोन राशि (₹)", loan_rate: "ब्याज दर (% प्रति वर्ष)",
+    loan_months: "अवधि (महीने)", monthly_emi: "मासिक EMI", total_interest: "कुल ब्याज", total_payment: "कुल भुगतान",
+    emi_info: "लोन राशि, ब्याज दर और अवधि डालिए। मासिक EMI और कुल ब्याज पता चलेगा।",
+    loan_tenure: "लोन अवधि (साल)", sip_info: "मासिक निवेश, अपेक्षित रिटर्न और समय अवधि डालिए। भविष्य मूल्य पता चलेगा।",
+    monthly_inv: "मासिक निवेश (₹)", exp_return: "अपेक्षित रिटर्न (% प्रति वर्ष)", time_period: "समय अवधि (साल)",
+    invested_amt: "निवेशित राशि", est_returns: "अनुमानित रिटर्न", total_value: "कुल मूल्य",
+    emi_chart: "EMI ब्रेकडाउन (सालाना)", sip_chart: "SIP ग्रोथ (सालाना)",
+    profit_info: "कुल खर्च और कुल आय डालिए। फायदा या नुकसान पता चलेगा।", total_cost: "कुल निवेश / खर्च (₹)",
+    total_income: "कुल आय / बिक्री मूल्य (₹)", profit_margin: "फायदा मार्जिन (%)", roi: "ROI (%)",
+    conv_info: "किसी भी यूनिट में एरिया डालिए। सभी यूनिट में कनवर्ट हो जाएगा।", from_unit: "से", enter_value: "मान डालिए", convert: "कनवर्ट",
+    sqm: "वर्ग मीटर", acre: "एकड़", hectare: "हेक्टेयर", bigha: "बीघा", kanal: "कनाल", guntha: "गुंठा", sqft: "वर्ग फीट",
+    remind_info: "बीज बोने, दवा स्प्रे, पानी देने जैसे काम के लिए रिमाइंडर सेट करें।", remind_title: "रिमाइंडर शीर्षक",
+    remind_type: "प्रकार", type_seed: "🌱 बीज बोना", type_pest: "💨 दवा स्प्रे", type_water: "💧 पानी देना", type_fert: "🧪 खाद देना", type_other: "📌 अन्य",
+    remind_date: "तारीख और समय", repeat_daily: "रोज दोहराएं", add_reminder: "➕ रिमाइंडर जोड़ें", upcoming: "📅 आने वाले रिमाइंडर",
+    export: "एक्सपोर्ट", import: "इम्पोर्ट", clear_all: "सब हटाएं", nav_home: "होम", nav_remind: "रिमाइंडर", nav_book: "किताब"
+  },
+  gu: {
+    farming_calc: "🌾 ખેતી કેલ્ક્યુલેટર", finance_calc: "💰 ફાઇનાન્સ કેલ્ક્યુલેટર", tools: "🛠️ ટૂલ્સ",
+    crop_calc: "પાક કેલ્ક્યુલેટર", crop_desc: "પાકનો ભાવ", tractor_time: "ટ્રેક્ટર સમય અને ભાડું", tractor_time_desc: "ભાડાનું ગણતરી",
+    tractor_area: "ટ્રેક્ટર વિસ્તાર", tractor_area_desc: "ખેતરનો વિસ્તાર", fertilizer: "ખાતર (NPK)", fertilizer_desc: "ખાતર ગણતરી",
+    seed_rate: "બીજ દર", seed_desc: "બીજની માત્રા", pesticide: "દવા સ્પ્રે", pesticide_desc: "દવા ગણતરી",
+    interest: "વ્યાજ કેલ્ક્યુલેટર", interest_desc: "વ્યાજ ગણતરી", emi: "EMI કેલ્ક્યુલેટર", emi_desc: "લોન EMI",
+    sip: "SIP કેલ્ક્યુલેટર", sip_desc: "બચત અને રિટર્ન", profit_loss: "નફો / નુકસાન", profit_desc: "લાભ કે નુકસાન",
+    land_conv: "જમીન કન્વર્ટર", land_conv_desc: "બીઘા, એકર, હેક્ટર", reminders: "રિમાઇન્ડર", reminders_desc: "બીજ, દવા, પાણી",
+    my_book: "મારી કિતાબ", my_book_desc: "સાચવેલ ઇતિહાસ",
+    crop_info: "કુલ બોરીઓ, બોરીનું વજન, બગાડ અને ભાવ નાખો. ઐપ કુલ રકમ બતાવશે.",
+    total_bags: "કુલ બોરીઓ", bag_weight: "બોરીનું વજન (કિલો)", wastage: "પ્રતિ બોરી બગાડ (કિલો)", rate_quintal: "પ્રતિ ક્વિન્ટલ ભાવ (₹)",
+    calculate: "ગણતરી કરો", total_weight: "કુલ વજન", net_weight: "ચોખ્ખું વજન", total_quintals: "કુલ ક્વિન્ટલ", total_amount: "કુલ રકમ",
+    save_book: "💾 મારી કિતાબમાં સાચવો",
+    tt_info: "ટ્રેક્ટરનો કલાક દીઠ ભાવ અને કેટલા કલાક/મિનિટ ચાલ્યું તે નાખો.", rate_hour: "પ્રતિ કલાક ભાવ (₹)",
+    hours: "કલાક", minutes: "મિનિટ", total_time: "કુલ સમય", total_cost: "કુલ ખર્ચ",
+    ta_info: "ટ્રેક્ટર વડે ખેતરનો વિસ્તાર ગણો. લંબાઈ, પ્રતિ રાઉન્ડ પહોળાઈ અને કુલ રાઉન્ડ નાખો.",
+    field_length: "ખેતરની લંબાઈ (મીટર)", width_round: "પ્રતિ રાઉન્ડ પહોળાઈ (મીટર)", total_rounds: "કુલ રાઉન્ડ",
+    total_area: "કુલ વિસ્તાર", in_acres: "એકરમાં", in_bigha: "બીઘામાં", in_hectares: "હેક્ટરમાં",
+    fert_info: "NPK ગુણોત્તર નાખો (જેમ કે 20-20-20). ઐપ યુરિયા, DAP, MOP બતાવશે.",
+    nitrogen: "નાઇટ્રોજન (N) કિલો", phosphorus: "ફોસ્ફોરસ (P) કિલો", potassium: "પોટેશિયમ (K) કિલો",
+    area_hectare: "વિસ્તાર (હેક્ટરમાં)", urea: "યુરિયા (46% N)", dap: "DAP (18% P, 46% N)", mop: "MOP (60% K)", total_fert: "કુલ ખાતર",
+    seed_info: "બીજનો ભલામણ દર (કિલો/હેક્ટર) અને વિસ્તાર નાખો.", seed_rate_label: "બીજ દર (કિલો પ્રતિ હેક્ટર)",
+    field_area: "ખેતરનો વિસ્તાર (હેક્ટર)", germ_rate: "અંકુરણ દર (%)", total_seed: "કુલ બીજ જોઈએ", with_buffer: "બફર સાથે",
+    pest_info: "દવાની ભલામણ માત્રા અને સ્પ્રે ટાંકી ક્ષમતા નાખો.", dose_liter: "ભલામણ માત્રા (મિલી/ગ્રામ પ્રતિ લિટર)",
+    tank_cap: "સ્પ્રે ટાંકી ક્ષમતા (લિટર)", total_tanks: "કુલ ટાંકી જોઈએ", per_tank: "પ્રતિ ટાંકી", total_pest: "કુલ દવા જોઈએ",
+    simple_int: "સાદું વ્યાજ", emi_tab: "EMI", principal: "મૂળ રકમ (₹)", int_rate: "વ્યાજ દર (% પ્રતિ વર્ષ)",
+    by_dates: "તારીખથી", by_years: "વર્ષથી", from_date: "શરૂઆત તારીખ", to_date: "અંત તારીખ", duration_years: "અવધિ (વર્ષ)",
+    duration: "અવધિ", simple_interest: "સાદું વ્યાજ", loan_amount: "લોન રકમ (₹)", loan_rate: "વ્યાજ દર (% પ્રતિ વર્ષ)",
+    loan_months: "અવધિ (મહિના)", monthly_emi: "માસિક EMI", total_interest: "કુલ વ્યાજ", total_payment: "કુલ ચુકવણી",
+    emi_info: "લોન રકમ, વ્યાજ દર અને અવધિ નાખો. માસિક EMI અને કુલ વ્યાજ મળશે.",
+    loan_tenure: "લોન અવધિ (વર્ષ)", sip_info: "માસિક રોકાણ, અપેક્ષિત રિટર્ન અને સમયગાળો નાખો. ભવિષ્ય મૂલ્ય મળશે.",
+    monthly_inv: "માસિક રોકાણ (₹)", exp_return: "અપેક્ષિત રિટર્ન (% પ્રતિ વર્ષ)", time_period: "સમયગાળો (વર્ષ)",
+    invested_amt: "રોકાણ રકમ", est_returns: "અંદાજિત રિટર્ન", total_value: "કુલ મૂલ્ય",
+    emi_chart: "EMI વિભાજન (વાર્ષિક)", sip_chart: "SIP વૃદ્ધિ (વાર્ષિક)",
+    profit_info: "કુલ ખર્ચ અને કુલ આવક નાખો. નફો કે નુકસાન જુઓ.", total_cost: "કુલ રોકાણ / ખર્ચ (₹)",
+    total_income: "કુલ આવક / વેચાણ કિંમત (₹)", profit_margin: "નફો માર્જિન (%)", roi: "ROI (%)",
+    conv_info: "કોઈપણ એકમમાં વિસ્તાર નાખો. બધા એકમમાં કન્વર્ટ થશે.", from_unit: "થી", enter_value: "કિંમત નાખો", convert: "કન્વર્ટ",
+    sqm: "ચો. મીટર", acre: "એકર", hectare: "હેક્ટર", bigha: "બીઘા", kanal: "કનાલ", guntha: "ગુંઠા", sqft: "ચો. ફૂટ",
+    remind_info: "બીજ વાવણી, દવા સ્પ્રે, પાણી આપવા જેવા કામ માટે રિમાઇન્ડર સેટ કરો.", remind_title: "રિમાઇન્ડર શીર્ષક",
+    remind_type: "પ્રકાર", type_seed: "🌱 બીજ વાવણી", type_pest: "💨 દવા સ્પ્રે", type_water: "💧 પાણી આપવું", type_fert: "🧪 ખાતર આપવું", type_other: "📌 અન્ય",
+    remind_date: "તારીખ અને સમય", repeat_daily: "દૈનિક પુનરાવર્તન", add_reminder: "➕ રિમાઇન્ડર ઉમેરો", upcoming: "📅 આગામી રિમાઇન્ડર",
+    export: "એક્સપોર્ટ", import: "ઇમ્પોર્ટ", clear_all: "બધું દૂર કરો", nav_home: "હોમ", nav_remind: "રિમાઇન્ડર", nav_book: "કિતાબ"
+  }
+  // Add other languages similarly (mr, ne, pa) - omitted for brevity but can be extended
+};
+// Fallback for missing languages
+const langMap = { en: T.en, hi: T.hi, gu: T.gu, mr: T.en, ne: T.en, pa: T.en };
+let currentLang = 'hi';
+
+function getText(key) {
+  const dict = langMap[currentLang] || T.hi;
+  return dict[key] || T.hi[key] || key;
+}
+
+function changeLang(lang) {
+  currentLang = lang;
+  document.querySelectorAll('[data-t]').forEach(el => {
+    const key = el.dataset.t;
+    const val = getText(key);
+    if (el.tagName === 'INPUT' || el.tagName === 'SELECT' || el.tagName === 'TEXTAREA') {
+      if (el.placeholder) el.placeholder = val;
+    } else {
+      el.textContent = val;
+    }
+  });
+  // Update dynamic content
+  updateBookUI();
+  updateRemindersUI();
+  // Update header
+  document.getElementById('headerTitle').textContent = currentLang === 'hi' ? 'Farmer Calculator Pro' : 'Farmer Calculator Pro';
+}
+// Init language
+changeLang('hi');
+
+// ==================== THEME ====================
+let dark = false;
+function toggleTheme() {
+  dark = !dark;
+  document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+  const icon = document.getElementById('themeIcon');
+  icon.innerHTML = dark ? '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>' : '<circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>';
+}
+
+// ==================== NAVIGATION ====================
+function openScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const el = document.getElementById('screen-' + id);
+  if (el) el.classList.add('active');
+  document.getElementById('backBtn').style.display = 'block';
+  // update bottom nav
+  document.querySelectorAll('.bottom-nav button').forEach(b => b.classList.remove('active'));
+  const map = { home:0, reminders:1, mybook:2 };
+  const idx = map[id] !== undefined ? map[id] : 0;
+  document.querySelectorAll('.bottom-nav button')[idx]?.classList.add('active');
+  // scroll to top
+  window.scrollTo(0,0);
+}
+
+function goHome() {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-home').classList.add('active');
+  document.getElementById('backBtn').style.display = 'none';
+  document.querySelectorAll('.bottom-nav button').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.bottom-nav button')[0].classList.add('active');
+}
+
+// ==================== TOAST ====================
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._hide);
+  t._hide = setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ==================== SAVE TO BOOK ====================
+function saveCalc(name, resId) {
+  const res = document.getElementById(resId);
+  if (!res || !res.classList.contains('show')) {
+    showToast('🔴 पहले calculation करें! / Calculate first!');
+    return;
+  }
+  const items = res.querySelectorAll('.result-row');
+  let detail = '';
+  items.forEach(row => {
+    const label = row.querySelector('span:first-child')?.textContent || '';
+    const val = row.querySelector('.val')?.textContent || '';
+    if (label && val) detail += `${label}: ${val}\n`;
+  });
+  if (!detail) { showToast('No data'); return; }
+  const history = JSON.parse(localStorage.getItem('farmerBook') || '[]');
+  history.push({ type: name, detail: detail, date: new Date().toLocaleString() });
+  localStorage.setItem('farmerBook', JSON.stringify(history));
+  showToast('✅ ' + getText('save_book'));
+  updateBookUI();
+}
+
+function updateBookUI() {
+  const container = document.getElementById('book-list');
+  const history = JSON.parse(localStorage.getItem('farmerBook') || '[]');
+  if (history.length === 0) {
+    container.innerHTML = `<div class="empty-state"><div class="icon">📖</div>No entries yet. Save calculations to see them here.</div>`;
+    return;
+  }
+  container.innerHTML = history.slice().reverse().map((item, idx) => `
+    <div class="history-item">
+      <div class="h-title">${item.type}</div>
+      <div class="h-detail">${item.detail.replace(/\n/g, '<br>')}</div>
+      <div class="h-date">🕐 ${item.date}</div>
+      <button onclick="deleteEntry(${history.length - 1 - idx})" style="background:none;border:none;color:var(--danger);font-size:12px;cursor:pointer;margin-top:4px;">🗑️ Remove</button>
+    </div>
+  `).join('');
+}
+
+function deleteEntry(idx) {
+  let history = JSON.parse(localStorage.getItem('farmerBook') || '[]');
+  history.splice(idx, 1);
+  localStorage.setItem('farmerBook', JSON.stringify(history));
+  updateBookUI();
+  showToast('🗑️ Removed');
+}
+
+function clearAll() {
+  if (!confirm('Delete all saved entries?')) return;
+  localStorage.removeItem('farmerBook');
+  updateBookUI();
+  showToast('🗑️ All cleared');
+}
+
+function exportData() {
+  const data = localStorage.getItem('farmerBook');
+  if (!data) { showToast('No data to export'); return; }
+  const blob = new Blob([data], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'farmer_book.json';
+  a.click();
+}
+
+function importData(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (Array.isArray(data)) {
+        localStorage.setItem('farmerBook', JSON.stringify(data));
+        updateBookUI();
+        showToast('✅ Imported successfully');
+      } else throw new Error('Invalid');
+    } catch(err) { showToast('❌ Invalid file'); }
+  };
+  reader.readAsText(file);
+}
+
+// ==================== REMINDERS ====================
+function getReminders() {
+  return JSON.parse(localStorage.getItem('reminders') || '[]');
+}
+function setReminders(r) { localStorage.setItem('reminders', JSON.stringify(r)); }
+
+function addReminder() {
+  const title = document.getElementById('r-title').value.trim();
+  const type = document.getElementById('r-type').value;
+  const dt = document.getElementById('r-datetime').value;
+  const repeat = document.getElementById('r-repeat').checked;
+  if (!title || !dt) { showToast('⚠️ Title and date required'); return; }
+  const rems = getReminders();
+  rems.push({ id: Date.now(), title, type, datetime: dt, repeat, created: new Date().toISOString() });
+  setReminders(rems);
+  document.getElementById('r-title').value = '';
+  document.getElementById('r-datetime').value = '';
+  document.getElementById('r-repeat').checked = false;
+  updateRemindersUI();
+  showToast('✅ Reminder added!');
+}
+
+function deleteReminder(id) {
+  let rems = getReminders();
+  rems = rems.filter(r => r.id !== id);
+  setReminders(rems);
+  updateRemindersUI();
+}
+
+function updateRemindersUI() {
+  const container = document.getElementById('reminder-list');
+  const rems = getReminders();
+  if (rems.length === 0) {
+    container.innerHTML = `<div class="empty-state"><div class="icon">🔔</div>No reminders set.</div>`;
+    return;
+  }
+  container.innerHTML = rems.map(r => `
+    <div class="reminder-card">
+      <div class="r-title">${r.title}</div>
+      <div class="r-time">🕐 ${new Date(r.datetime).toLocaleString()} ${r.repeat ? '🔄 Daily' : ''}</div>
+      <span class="r-type r-type-${r.type}">${r.type.toUpperCase()}</span>
+      <button class="r-delete" onclick="deleteReminder(${r.id})">✕</button>
+    </div>
+  `).join('');
+}
+
+// ==================== CALCULATORS ====================
+function getVal(id) { return parseFloat(document.getElementById(id).value) || 0; }
+function setText(id, val) { document.getElementById(id).textContent = val; }
+function showResult(id) { document.getElementById(id).classList.add('show'); }
+
+function calcCrop() {
+  const bags = getVal('c-bags'), weight = getVal('c-weight'), waste = getVal('c-waste'), rate = getVal('c-rate');
+  if (!bags || !weight || !rate) { showToast('Please fill all fields'); return; }
+  const total = bags * weight;
+  const net = bags * (weight - waste);
+  const q = net / 100;
+  const amt = q * rate;
+  setText('c-r1', total.toFixed(1) + ' kg');
+  setText('c-r2', net.toFixed(1) + ' kg');
+  setText('c-r3', q.toFixed(2));
+  setText('c-r4', '₹ ' + amt.toFixed(2));
+  showResult('c-res');
+}
+
+function calcTractorTime() {
+  const rate = getVal('tt-rate'), h = getVal('tt-h'), m = getVal('tt-m');
+  if (!rate) { showToast('Enter rate'); return; }
+  const total = h + m/60;
+  setText('tt-r1', total.toFixed(2) + ' hrs');
+  setText('tt-r2', '₹ ' + (rate * total).toFixed(2));
+  showResult('tt-res');
+}
+
+function calcTractorArea() {
+  const len = getVal('ta-len'), wid = getVal('ta-wid'), rounds = getVal('ta-round');
+  if (!len || !wid || !rounds) { showToast('Fill all fields'); return; }
+  const area = len * wid * rounds;
+  setText('ta-r1', area.toFixed(2) + ' sqm');
+  setText('ta-r2', (area / 4046.86).toFixed(3));
+  setText('ta-r3', (area / 1337.8).toFixed(3));
+  setText('ta-r4', (area / 10000).toFixed(3));
+  showResult('ta-res');
+}
+
+function calcFertilizer() {
+  let n = getVal('f-n'), p = getVal('f-p'), k = getVal('f-k'), area = getVal('f-area');
+  if (!n && !p && !k) { showToast('Enter at least one nutrient'); return; }
+  if (!area) area = 1;
+  // Simplified: Urea 46% N, DAP 18% P & 46% N, MOP 60% K
+  const urea = (n / 0.46) * area;
+  const dapP = (p / 0.18) * area;
+  const dapN = dapP * 0.46;
+  const mop = (k / 0.60) * area;
+  // Adjust urea for N from DAP
+  const ureaAdjusted = Math.max(0, (n - dapN*area) / 0.46);
+  setText('f-r1', ureaAdjusted.toFixed(1) + ' kg');
+  setText('f-r2', dapP.toFixed(1) + ' kg');
+  setText('f-r3', mop.toFixed(1) + ' kg');
+  setText('f-r4', (ureaAdjusted + dapP + mop).toFixed(1) + ' kg');
+  showResult('f-res');
+}
+
+function calcSeed() {
+  const rate = getVal('s-rate'), area = getVal('s-area'), germ = getVal('s-germ');
+  if (!rate || !area) { showToast('Enter rate and area'); return; }
+  const total = rate * area;
+  const buffer = germ ? total / (germ/100) : total;
+  setText('s-r1', total.toFixed(1) + ' kg');
+  setText('s-r2', buffer.toFixed(1) + ' kg');
+  showResult('s-res');
+}
+
+function calcPesticide() {
+  const dose = getVal('p-dose'), tank = getVal('p-tank'), tanks = getVal('p-tanks');
+  if (!dose || !tank || !tanks) { showToast('Fill all fields'); return; }
+  const perTank = dose * tank;
+  setText('p-r1', perTank.toFixed(1) + ' ml/gm');
+  setText('p-r2', (perTank * tanks).toFixed(1) + ' ml/gm');
+  showResult('p-res');
+}
+
+// Interest
+function toggleIntMode() {
+  const mode = document.querySelector('input[name="i-mode"]:checked').value;
+  document.getElementById('i-dates-box').style.display = mode === 'dates' ? 'block' : 'none';
+  document.getElementById('i-years-box').style.display = mode === 'years' ? 'block' : 'none';
+}
+
+function calcInterest() {
+  const p = getVal('i-p'), rate = getVal('i-rate');
+  if (!p || !rate) { showToast('Enter principal and rate'); return; }
+  const mode = document.querySelector('input[name="i-mode"]:checked').value;
+  let years = 0;
+  if (mode === 'dates') {
+    const from = document.getElementById('i-from').value;
+    const to = document.getElementById('i-to').value;
+    if (!from || !to) { showToast('Select both dates'); return; }
+    const diff = new Date(to) - new Date(from);
+    years = diff / (365.25 * 24 * 3600 * 1000);
+  } else {
+    years = getVal('i-years');
+    if (!years) { showToast('Enter duration'); return; }
+  }
+  if (years <= 0) { showToast('Invalid duration'); return; }
+  const si = p * rate / 100 * years;
+  setText('i-r1', years.toFixed(2) + ' yrs');
+  setText('i-r2', '₹ ' + si.toFixed(2));
+  setText('i-r3', '₹ ' + (p + si).toFixed(2));
+  showResult('i-res');
+}
+
+function calcIntEMI() {
+  const p = getVal('i2-p'), rate = getVal('i2-rate'), months = getVal('i2-months');
+  if (!p || !rate || !months) { showToast('Fill all fields'); return; }
+  const mr = rate / 12 / 100;
+  const emi = p * mr * Math.pow(1+mr, months) / (Math.pow(1+mr, months) - 1);
+  const total = emi * months;
+  setText('i2-r1', '₹ ' + emi.toFixed(2));
+  setText('i2-r2', '₹ ' + (total - p).toFixed(2));
+  setText('i2-r3', '₹ ' + total.toFixed(2));
+  showResult('i2-res');
+}
+
+// EMI standalone
+function calcEMI() {
+  const p = getVal('e-p'), rate = getVal('e-rate'), years = getVal('e-years');
+  if (!p || !rate || !years) { showToast('Fill all fields'); return; }
+  const months = years * 12;
+  const mr = rate / 12 / 100;
+  const emi = p * mr * Math.pow(1+mr, months) / (Math.pow(1+mr, months) - 1);
+  const total = emi * months;
+  setText('e-r1', '₹ ' + emi.toFixed(2));
+  setText('e-r2', '₹ ' + (total - p).toFixed(2));
+  setText('e-r3', '₹ ' + total.toFixed(2));
+  showResult('e-res');
+  document.getElementById('e-chart-box').classList.add('show');
+  drawEMIChart(p, rate, years);
+}
+
+function drawEMIChart(p, rate, years) {
+  const canvas = document.getElementById('e-canvas');
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const rect = canvas.parentElement.getBoundingClientRect();
+  canvas.width = (rect.width - 32) * dpr;
+  canvas.height = 220 * dpr;
+  canvas.style.width = (rect.width - 32) + 'px';
+  canvas.style.height = '220px';
+  ctx.scale(dpr, dpr);
+  const w = canvas.width / dpr, h = canvas.height / dpr;
+  ctx.clearRect(0, 0, w, h);
+
+  const mr = rate / 12 / 100;
+  const months = years * 12;
+  const emi = p * mr * Math.pow(1+mr, months) / (Math.pow(1+mr, months) - 1);
+  let bal = p;
+  const data = [];
+  for (let i=0; i<years; i++) {
+    let interest = 0;
+    for (let j=0; j<12; j++) {
+      const intPart = bal * mr;
+      interest += intPart;
+      bal = bal - (emi - intPart);
+    }
+    data.push({ year: i+1, interest, principal: emi*12 - interest });
+  }
+
+  const maxVal = Math.max(...data.map(d => d.interest + d.principal));
+  const padding = { top: 20, bottom: 30, left: 40, right: 20 };
+  const chartW = w - padding.left - padding.right;
+  const chartH = h - padding.top - padding.bottom;
+
+  const colors = ['#2E7D32', '#FF6F00'];
+  const barWidth = Math.min(chartW / data.length * 0.6, 40);
+  const gap = (chartW - barWidth * data.length) / (data.length + 1);
+
+  data.forEach((d, i) => {
+    const x = padding.left + gap + i * (barWidth + gap);
+    const total = d.interest + d.principal;
+    const h1 = (d.principal / maxVal) * chartH;
+    const h2 = (d.interest / maxVal) * chartH;
+    ctx.fillStyle = colors[0];
+    ctx.fillRect(x, padding.top + chartH - h1, barWidth, h1);
+    ctx.fillStyle = colors[1];
+    ctx.fillRect(x, padding.top + chartH - h1 - h2, barWidth, h2);
+    ctx.fillStyle = '#aaa';
+    ctx.font = '9px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Y' + d.year, x + barWidth/2, padding.top + chartH + 16);
+  });
+  // legend
+  ctx.font = '9px sans-serif';
+  ctx.textAlign = 'left';
+  ctx.fillStyle = colors[0];
+  ctx.fillRect(w-110, 10, 12, 12);
+  ctx.fillStyle = '#666';
+  ctx.fillText('Principal', w-94, 20);
+  ctx.fillStyle = colors[1];
+  ctx.fillRect(w-110, 26, 12, 12);
+  ctx.fillStyle = '#666';
+  ctx.fillText('Interest', w-94, 36);
+}
+
+// SIP
+function calcSIP() {
+  const p = getVal('si-p'), rate = getVal('si-rate'), years = getVal('si-years');
+  if (!p || !rate || !years) { showToast('Fill all fields'); return; }
+  const mr = rate / 12 / 100;
+  const months = years * 12;
+  const fv = p * ((Math.pow(1+mr, months) - 1) / mr) * (1+mr);
+  const invested = p * months;
+  setText('si-r1', '₹ ' + invested.toFixed(2));
+  setText('si-r2', '₹ ' + (fv - invested).toFixed(2));
+  setText('si-r3', '₹ ' + fv.toFixed(2));
+  showResult('si-res');
+  document.getElementById('si-chart-box').classList.add('show');
+  drawSIPChart(p, rate, years);
+}
+
+function drawSIPChart(p, rate, years) {
+  const canvas = document.getElementById('si-canvas');
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const rect = canvas.parentElement.getBoundingClientRect();
+  canvas.width = (rect.width - 32) * dpr;
+  canvas.height = 220 * dpr;
+  canvas.style.width = (rect.width - 32) + 'px';
+  canvas.style.height = '220px';
+  ctx.scale(dpr, dpr);
+  const w = canvas.width / dpr, h = canvas.height / dpr;
+  ctx.clearRect(0, 0, w, h);
+
+  const mr = rate / 12 / 100;
+  const months = years * 12;
+  const data = [];
+  let val = 0;
+  for (let i=1; i<=years; i++) {
+    for (let j=0; j<12; j++) {
+      val = (val + p) * (1+mr);
+    }
+    data.push({ year: i, value: val });
+  }
+  const maxVal = data[data.length-1].value;
+  const padding = { top: 20, bottom: 30, left: 40, right: 20 };
+  const chartW = w - padding.left - padding.right;
+  const chartH = h - padding.top - padding.bottom;
+
+  ctx.beginPath();
+  data.forEach((d, i) => {
+    const x = padding.left + (i / (data.length-1)) * chartW;
+    const y = padding.top + chartH - (d.value / maxVal) * chartH;
+    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  });
+  ctx.strokeStyle = '#2E7D32';
+  ctx.lineWidth = 2.5;
+  ctx.stroke();
+
+  // fill area
+  const last = data[data.length-1];
+  ctx.lineTo(padding.left + chartW, padding.top + chartH);
+  ctx.lineTo(padding.left, padding.top + chartH);
+  ctx.closePath();
+  ctx.fillStyle = 'rgba(46,125,50,0.12)';
+  ctx.fill();
+
+  // labels
+  ctx.fillStyle = '#aaa';
+  ctx.font = '9px sans-serif';
+  ctx.textAlign = 'center';
+  data.forEach((d, i) => {
+    const x = padding.left + (i / (data.length-1)) * chartW;
+    ctx.fillText('Y' + d.year, x, padding.top + chartH + 16);
+  });
+  ctx.textAlign = 'right';
+  ctx.fillText('₹' + (maxVal/1000).toFixed(0) + 'k', padding.left - 4, padding.top + 10);
+}
+
+// Profit
+function calcProfit() {
+  const cost = getVal('pl-cost'), income = getVal('pl-income');
+  if (!cost && !income) { showToast('Enter both values'); return; }
+  const pl = income - cost;
+  const margin = cost ? (pl / cost) * 100 : 0;
+  setText('pl-r1', (pl >= 0 ? '📈 +' : '📉 ') + '₹ ' + pl.toFixed(2));
+  setText('pl-r2', margin.toFixed(2) + '%');
+  setText('pl-r3', margin.toFixed(2) + '%');
+  document.getElementById('pl-r1').style.color = pl >= 0 ? '#2e7d32' : '#c62828';
+  showResult('pl-res');
+}
+
+// Converter
+function calcConverter() {
+  const val = getVal('lc-val');
+  if (!val) { showToast('Enter value'); return; }
+  const from = document.getElementById('lc-from').value;
+  const units = {
+    sqm:1, acre:4046.86, hectare:10000, bigha:1337.8, kanal:505.857, guntha:101.17, sqft:0.092903
+  };
+  const base = val * units[from];
+  setText('lc-r1', (base).toFixed(2));
+  setText('lc-r2', (base / units.acre).toFixed(4));
+  setText('lc-r3', (base / units.hectare).toFixed(4));
+  setText('lc-r4', (base / units.bigha).toFixed(3));
+  setText('lc-r5', (base / units.kanal).toFixed(3));
+  setText('lc-r6', (base / units.guntha).toFixed(3));
+  setText('lc-r7', (base / units.sqft).toFixed(2));
+  showResult('lc-res');
+}
+
+// Switch tab
+function switchTab(btn, id) {
+  const parent = btn.closest('.screen');
+  parent.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  const container = parent.querySelector('.screen > div:not(.tabs)');
+  parent.querySelectorAll('#int-simple, #int-emi').forEach(el => el.style.display = 'none');
+  document.getElementById(id).style.display = 'block';
+}
+
+// Init
+updateBookUI();
+updateRemindersUI();
+
+// Auto-run on load for demo dates
+document.addEventListener('DOMContentLoaded', function() {
+  const now = new Date();
+  const from = new Date(now.getFullYear(), now.getMonth()-1, now.getDate());
+  document.getElementById('i-from').value = from.toISOString().split('T')[0];
+  document.getElementById('i-to').value = now.toISOString().split('T')[0];
+  // Set default datetime for reminders
+  const dt = new Date();
+  dt.setHours(dt.getHours() + 2);
+  document.getElementById('r-datetime').value = dt.toISOString().slice(0,16);
+});
+</script>
+</body>
+</html>
